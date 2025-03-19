@@ -1,7 +1,9 @@
 package com.mothdev.taskmanager.controller;
 
-import com.mothdev.taskmanager.model.Task;
+import com.mothdev.taskmanager.dto.TaskRequestDTO;
+import com.mothdev.taskmanager.dto.TaskResponseDTO;
 import com.mothdev.taskmanager.service.TaskService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,29 +20,35 @@ public class TaskController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Task> getTaskById(@PathVariable Long id) {
+    public ResponseEntity<TaskResponseDTO> getTaskById(@PathVariable Long id) {
         return this.taskService.getTaskById(id).
                 map(ResponseEntity::ok).
                 orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping
-    public List<Task> getAllTasks() {
-        return taskService.getAllTasks();
+    public ResponseEntity<List<TaskResponseDTO>> getAllTasks() {
+        List<TaskResponseDTO> allTasks = taskService.getAllTasks();
+
+        if(allTasks.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(allTasks);
     }
 
     @PostMapping
-    public Task createTask(@RequestBody Task task) {
-        return taskService.createTask(task);
+    public ResponseEntity<TaskResponseDTO> createTask(@Valid @RequestBody TaskRequestDTO task) {
+        return ResponseEntity.ok(taskService.createTask(task));
     }
 
     @PutMapping("/{id}")
-    public Task updateTask(@PathVariable Long id, @RequestBody Task task) {
-        return taskService.updateTask(id, task);
+    public ResponseEntity<TaskResponseDTO> updateTask(@PathVariable Long id, @Valid @RequestBody TaskRequestDTO task) {
+        return ResponseEntity.ok(taskService.updateTask(id, task));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteTask(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
         taskService.deleteTask(id);
         return ResponseEntity.ok().build();
     }
