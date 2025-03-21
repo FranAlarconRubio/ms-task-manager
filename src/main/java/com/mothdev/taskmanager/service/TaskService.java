@@ -6,6 +6,8 @@ import com.mothdev.taskmanager.exception.TaskNotFoundException;
 import com.mothdev.taskmanager.mapper.TaskMapper;
 import com.mothdev.taskmanager.model.Task;
 import com.mothdev.taskmanager.repository.TaskRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,11 +23,9 @@ public class TaskService {
         this.taskRepository = taskRepository;
     }
 
-    public List<TaskResponseDTO> getAllTasks() {
-        return this.taskRepository.findAll().
-                stream().
-                map(TaskMapper::toDto).
-                collect(Collectors.toList());
+    public Page<TaskResponseDTO> getAllTasks(Pageable pageable) {
+        return this.taskRepository.findAll(pageable).
+                map(TaskMapper::toDto);
     }
 
     public Optional<TaskResponseDTO> getTaskById(Long id) {
