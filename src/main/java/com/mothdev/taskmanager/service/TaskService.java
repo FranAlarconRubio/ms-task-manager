@@ -3,16 +3,18 @@ package com.mothdev.taskmanager.service;
 import com.mothdev.taskmanager.dto.TaskRequestDTO;
 import com.mothdev.taskmanager.dto.TaskResponseDTO;
 import com.mothdev.taskmanager.exception.TaskNotFoundException;
+import com.mothdev.taskmanager.mapper.PaginationMapper;
 import com.mothdev.taskmanager.mapper.TaskMapper;
 import com.mothdev.taskmanager.model.Task;
+import com.mothdev.taskmanager.payload.PagedResponse;
 import com.mothdev.taskmanager.repository.TaskRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+
 import java.util.Optional;
-import java.util.stream.Collectors;
+
 
 @Service
 public class TaskService {
@@ -23,9 +25,18 @@ public class TaskService {
         this.taskRepository = taskRepository;
     }
 
-    public Page<TaskResponseDTO> getAllTasks(Pageable pageable) {
-        return this.taskRepository.findAll(pageable).
+    public PagedResponse<TaskResponseDTO> getAllTasks(Pageable pageable) {
+        Page<TaskResponseDTO> tasks = this.taskRepository.findAll(pageable).
                 map(TaskMapper::toDto);
+
+        return PaginationMapper.map(tasks);
+    }
+
+    public PagedResponse<TaskResponseDTO> getTasksFiltered(boolean completed, String title, Pageable pageable) {
+        Page<TaskResponseDTO> tasks = taskRepository.findByCompletedAndTitleContainingIgnoreCase(completed, title, pageable).
+                map(TaskMapper::toDto);
+
+        return PaginationMapper.map(tasks);
     }
 
     public Optional<TaskResponseDTO> getTaskById(Long id) {

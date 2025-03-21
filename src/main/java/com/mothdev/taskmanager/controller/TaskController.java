@@ -2,19 +2,18 @@ package com.mothdev.taskmanager.controller;
 
 import com.mothdev.taskmanager.dto.TaskRequestDTO;
 import com.mothdev.taskmanager.dto.TaskResponseDTO;
+import com.mothdev.taskmanager.payload.PagedResponse;
 import com.mothdev.taskmanager.service.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -44,7 +43,27 @@ public class TaskController {
             @ApiResponse(responseCode = "204", description = "No hay tareas disponibles")
     })
     @GetMapping
-    public ResponseEntity<Page<TaskResponseDTO>> getAllTasks(
+    public ResponseEntity<PagedResponse<TaskResponseDTO>> getAllTasks(
+            @PageableDefault(
+                    page = 0,
+                    size = 5,
+                    sort = "id",
+                    direction = Sort.Direction.ASC
+            ) Pageable pageable
+    ) {
+
+        PagedResponse<TaskResponseDTO> allTasks = taskService.getAllTasks(pageable);
+
+        if(allTasks.getSize() == 0) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(allTasks);
+    }
+
+    public ResponseEntity<PagedResponse<TaskResponseDTO>> getTasksFiltered(
+            @RequestParam(defaultValue = "") String title,
+            @RequestParam(defaultValue = "false") boolean completed,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
@@ -55,13 +74,9 @@ public class TaskController {
                 Sort.by(sortBy).ascending();
 
         Pageable pageable = PageRequest.of(page, size, sort);
-        Page<TaskResponseDTO> allTasks = taskService.getAllTasks(pageable);
+        PagedResponse<TaskResponseDTO> tasks = taskService.getTasksFiltered(completed, title, pageable);
 
-        if(allTasks.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-
-        return ResponseEntity.ok(allTasks);
+        return ResponseEntity.ok(tasks);
     }
 
 
