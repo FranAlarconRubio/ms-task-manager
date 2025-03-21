@@ -2,6 +2,7 @@ package com.mothdev.taskmanager.service;
 
 import com.mothdev.taskmanager.dto.TaskRequestDTO;
 import com.mothdev.taskmanager.dto.TaskResponseDTO;
+import com.mothdev.taskmanager.exception.TaskNotFoundException;
 import com.mothdev.taskmanager.mapper.TaskMapper;
 import com.mothdev.taskmanager.model.Task;
 import com.mothdev.taskmanager.repository.TaskRepository;
@@ -40,7 +41,7 @@ public class TaskService {
 
     public TaskResponseDTO updateTask(Long id, TaskRequestDTO dto) {
         Task task = taskRepository.findById(id).
-                orElseThrow(() -> new RuntimeException("Task not found"));
+                orElseThrow(() -> new TaskNotFoundException(id));
 
         TaskMapper.updateEntityFromDto(dto, task);
         Task updatedTask = taskRepository.save(task);
